@@ -1111,7 +1111,7 @@ body { padding-top: 0 !important; }
 /* --- FINAL OVERRIDES --- */
 :root{
   --header-h: 56px;
-  --header-gap: 12px;
+  --header-gap: 20px;
 }
 @media (max-width: 768px){
   :root{ --header-h: 50px; --header-gap: 8px; }
@@ -1138,7 +1138,7 @@ body { padding-top: 0 !important; }
 
 /* Ensure the video truly fills that area */
 #hero-banner.video-hero .hero-video{
-  height: 100% !important;
+  height: 120% !important;
   max-height: none !important;
   width: 100% !important;
   object-fit: cover;
@@ -1291,3 +1291,25 @@ a.btn-fancy:hover, a.btn-fancy:focus,
   font-size: clamp(1.05rem, 1.6vw, 1.25rem) !important;
   margin-top: 6px;
 }
+
+/* Tiny copy button next to UID */
+.btn-uid-copy{
+  margin-left: 8px;
+  padding: 2px 6px;
+  line-height: 1;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid #d7b676;
+  background: #2a2144;
+  color: #fff7ea;
+  cursor: pointer;
+}
+.btn-uid-copy:hover{ background:#3b2c59; color:#ffe6a8; }
+.profile-list .fa.fa-clipboard{ font-size: 12px; }
+
+.copy-feedback{
+  margin-left: 6px;
+  font-size: 12px;
+  color: #19BD9B;
+}
+

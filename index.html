@@ -82,7 +82,16 @@
       <div class="col-xs-12 col-md-6 profile-col-text wow fadeInRight" data-wow-duration="800ms" data-wow-delay=".15s">
         <ul class="profile-list">
           <li><strong>Name:</strong> <span class="value">寒塘冷月</span></li>
-          <li><strong>UID:</strong> <span class="value">139376542</span></li>
+          <li>
+            <strong>UID:</strong>
+            <span class="value" id="uid-value">139376542</span>
+            <button class="btn-uid-copy" type="button"
+                    aria-label="Copy UID" title="Copy UID"
+                    data-copy-target="#uid-value">
+              <i class="fa fa-clipboard" aria-hidden="true"></i>
+            </button>
+            <span class="copy-feedback" aria-live="polite" hidden>Copied!</span>
+          </li>
           <li><strong>Server:</strong> <span class="value">Chinese</span></li>
           <li><strong>Notes:</strong> <span class="value">愿此行，终抵群星！</span></li>
         </ul>
@@ -143,6 +152,34 @@
           if (y < 10) { nav.classList.remove('nav-hidden'); hidden = false; }
           lastY = y;
         }, { passive: true });
+      })();
+    </script>
+
+    <script>
+      (function(){
+        const btn = document.querySelector('.btn-uid-copy');
+        if (!btn) return;
+        const feedback = btn.parentElement.querySelector('.copy-feedback');
+        const targetSel = btn.getAttribute('data-copy-target');
+        const target = document.querySelector(targetSel);
+
+        async function copyText(txt){
+          try {
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(txt);
+            } else {
+              const ta = document.createElement('textarea');
+              ta.value = txt; document.body.appendChild(ta);
+              ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+            }
+            if (feedback){ feedback.hidden = false; setTimeout(()=> feedback.hidden = true, 1200); }
+          } catch(e){ console.warn('Copy failed', e); }
+        }
+
+        btn.addEventListener('click', () => {
+          const txt = target ? target.textContent.trim() : '';
+          if (txt) copyText(txt);
+        });
       })();
     </script>
   </body>
