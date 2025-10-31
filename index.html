@@ -1,21 +1,149 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>My Site</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <header>
-      <h1>Welcome</h1>
-      <nav>
-        <a href="./">Home</a>
-        <a href="about.html">About</a>
-      </nav>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Track and showcase Treasures Lightward grades in Honkai: Star Rail.">
+    <meta name="author" content="HTLY">
+    <title>Treasures Lightward | Honkai: Star Rail</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/font-awesome.min.css" rel="stylesheet">
+    <link href="css/animate.min.css" rel="stylesheet"> 
+    <link href="css/prettyPhoto.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet"> 
+    <!--[if lt IE 9]>
+    <script src="js/html5shiv.js"></script>
+    <script src="js/respond.min.js"></script>
+    <![endif]-->       
+    <link rel="shortcut icon" href="images/ico/favicon.ico"> 
+</head> 
+
+<body id="home">
+
+    <header id="header">
+        <nav id="main-nav" class="navbar navbar-default navbar-fixed-top" role="banner">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="index.html"><img src="images/logo.png" alt="logo"></a>
+                </div>
+                <div class="collapse navbar-collapse navbar-right">
+                    <ul class="nav navbar-nav">
+                        <li class="scroll active"><a href="#home">Home</a></li>
+                        <li class="scroll"><a href="grades.html">Grades</a></li>
+                        <li class="scroll"><a href="#profile">Profile</a></li>
+                        <li class="scroll"><a href="#characters">Characters</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
     </header>
-    <main>
-      <p>Hello, world! This is my GitHub Pages site.</p>
-    </main>
+
+    <section id="hero-banner" class="video-hero">
+        <video class="hero-video" autoplay muted loop playsinline preload="metadata">
+            <source src="images/banner/top_vedio.mp4" type="video/mp4">
+            <!-- Optional: <source src="images/banner/top_vedio.webm" type="video/webm"> -->
+        </video>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="site-title wow fadeInDown" data-wow-duration="900ms" data-wow-delay=".15s">
+                <strong>Treasures Lightward Grade Tracker</strong>
+            </h1>
+            <p class="intro wow fadeInUp" data-wow-duration="900ms" data-wow-delay=".35s">
+                Track and showcase my Treasures Lightward grades in Honkai: Star Rail.
+            </p>
+            <a class="btn btn-fancy wow fadeInUp" data-wow-duration="900ms" data-wow-delay=".55s"
+               href="grades.html" role="button" aria-label="Go to the grades page">
+                <span class="btn-deco left" aria-hidden="true"></span>
+                View Grades
+                <span class="btn-deco right" aria-hidden="true"></span>
+            </a>
+        </div>
+    </section>
+
+<section id="profile" class="hsr-section">
+  <div class="container">
+    <h2 class="section-title wow fadeInUp" data-wow-duration="800ms">My Trailblazer Profile</h2>
+    <div class="row">
+      <div class="col-xs-12 col-md-6 profile-col-img wow fadeInLeft" data-wow-duration="800ms" data-wow-delay=".15s">
+        <img
+          class="img-responsive profile-img"
+          src="images\Honkai_Starrail\Profile"
+          srcset="images\Honkai_Starrail\Profile\profile.PNG"
+          sizes="(max-width: 991px) 100vw, 50vw"
+          alt="Trailblazer profile"
+          loading="lazy">
+      </div>
+      <div class="col-xs-12 col-md-6 profile-col-text wow fadeInRight" data-wow-duration="800ms" data-wow-delay=".15s">
+        <ul class="profile-list">
+          <li><strong>Name:</strong> <span class="value">寒塘冷月</span></li>
+          <li><strong>UID:</strong> <span class="value">139376542</span></li>
+          <li><strong>Server:</strong> <span class="value">Chinese</span></li>
+          <li><strong>Notes:</strong> <span class="value">愿此行，终抵群星！</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="characters" class="hsr-section">
+  <div class="container">
+    <h2 class="section-title wow fadeInUp" data-wow-duration="800ms">Featured Characters</h2>
+    <div class="row character-grid">
+      <div class="col-sm-4 wow fadeInUp" data-wow-duration="800ms" data-wow-delay=".1s">
+        <img class="img-responsive char-card" src="images/characters/char-1.jpg" alt="Character 1">
+        <p class="text-center">Character 1</p>
+      </div>
+      <div class="col-sm-4 wow fadeInUp" data-wow-duration="800ms" data-wow-delay=".2s">
+        <img class="img-responsive char-card" src="images/characters/char-2.jpg" alt="Character 2">
+        <p class="text-center">Character 2</p>
+      </div>
+      <div class="col-sm-4 wow fadeInUp" data-wow-duration="800ms" data-wow-delay=".3s">
+        <img class="img-responsive char-card" src="images/characters/char-3.jpg" alt="Character 3">
+        <p class="text-center">Character 3</p>
+      </div>
+    </div>
+    <p class="text-muted small">Replace with your own screenshots.</p>
+  </div>
+</section>
+
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script> 
+    <script src="js/mousescroll.js"></script>
+    <script src="js/smoothscroll.js"></script>
+    <script src="js/jquery.prettyPhoto.js"></script>
+    <script src="js/jquery.isotope.min.js"></script>
+    <script src="js/jquery.inview.min.js"></script>
+    <script src="js/wow.min.js"></script>
+    <script src="js/custom-scripts.js"></script>
+
+    <script>
+      // Ensure WOW animations run (including on first load)
+      if (window.WOW) {
+        new WOW({ offset: 80, mobile: true, live: true }).init();
+      }
+    </script>
+
+    <script>
+      // Keep: hide header on scroll down, show on scroll up
+      (function () {
+        const nav = document.getElementById('main-nav');
+        if (!nav) return;
+        let lastY = window.pageYOffset, hidden = false;
+        window.addEventListener('scroll', () => {
+          const y = window.pageYOffset, delta = y - lastY;
+          if (Math.abs(delta) < 8) return;
+          if (y > 60 && delta > 0 && !hidden) { nav.classList.add('nav-hidden'); hidden = true; }
+          else if (delta < 0 && hidden) { nav.classList.remove('nav-hidden'); hidden = false; }
+          if (y < 10) { nav.classList.remove('nav-hidden'); hidden = false; }
+          lastY = y;
+        }, { passive: true });
+      })();
+    </script>
   </body>
 </html>
