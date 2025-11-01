@@ -103,22 +103,124 @@
 <section id="characters" class="hsr-section">
   <div class="container">
     <h2 class="section-title wow fadeInUp" data-wow-duration="800ms">Featured Characters</h2>
-    <div class="row character-grid">
-      <div class="col-sm-4 wow fadeInUp" data-wow-duration="800ms" data-wow-delay=".1s">
-        <img class="img-responsive char-card" src="images/characters/char-1.jpg" alt="Character 1">
-        <p class="text-center">Character 1</p>
-      </div>
-      <div class="col-sm-4 wow fadeInUp" data-wow-duration="800ms" data-wow-delay=".2s">
-        <img class="img-responsive char-card" src="images/characters/char-2.jpg" alt="Character 2">
-        <p class="text-center">Character 2</p>
-      </div>
-      <div class="col-sm-4 wow fadeInUp" data-wow-duration="800ms" data-wow-delay=".3s">
-        <img class="img-responsive char-card" src="images/characters/char-3.jpg" alt="Character 3">
-        <p class="text-center">Character 3</p>
-      </div>
-    </div>
-    <p class="text-muted small">Replace with your own screenshots.</p>
+
+    <div class="row character-grid" id="characterGrid"></div>
+
+    <noscript>
+      <p class="text-muted small">Enable JavaScript to auto-load images from images/Honkai_Starrail/characters.</p>
+    </noscript>
+
+    <p class="text-muted small">Upload images to images/Honkai_Starrail/characters and they will appear here automatically.</p>
   </div>
+
+  <script>
+    (function () {
+      const OWNER = 'htly-s-Honkai-Starrail-record';
+      const REPO  = OWNER + '.github.io';
+      const GALLERY_PATH = 'images/Honkai_Starrail/characters';
+
+      const section = document.getElementById('characters');
+      const grid = document.getElementById('characterGrid');
+
+      function toTitle(name) {
+        return decodeURIComponent(name.replace(/\.[^.]+$/, '').replace(/[_\-]+/g, ' '));
+      }
+
+      function addItem(file) {
+        const col = document.createElement('div');
+        col.className = 'col-xs-6 col-sm-4 col-md-3 wow fadeInUp';
+        col.setAttribute('data-wow-duration', '800ms');
+
+        const a = document.createElement('a');
+        a.href = file.download_url || file.html_url;
+        a.setAttribute('rel', "prettyPhoto[chars]");
+        a.setAttribute('data-rel', "prettyPhoto[chars]");
+
+        const img = document.createElement('img');
+        img.className = 'img-responsive char-card';
+        img.loading = 'lazy';
+        img.src = file.download_url;
+        img.alt = toTitle(file.name);
+
+        const p = document.createElement('p');
+        p.className = 'text-center';
+        p.textContent = toTitle(file.name);
+
+        a.appendChild(img);
+        col.appendChild(a);
+        col.appendChild(p);
+        grid.appendChild(col);
+      }
+
+      async function fetchJSON(url) {
+        const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+        if (!res.ok) throw new Error(res.status);
+        return res.json();
+      }
+
+      async function getDefaultBranch() {
+        try {
+          const info = await fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}`);
+          return info.default_branch || 'main';
+        } catch (e) {
+          return 'main';
+        }
+      }
+
+      async function buildGallery() {
+        if (!grid) return;
+
+        // Local preview fallback
+        // Removed early return so local file preview still fetches from GitHub API
+        // if (location.protocol === 'file:') {
+        //   const tip = document.createElement('p');
+        //   tip.className = 'text-muted small';
+        //   tip.textContent = 'Open this page via GitHub Pages to auto-load images.';
+        //   section.querySelector('.container').appendChild(tip);
+        //   return;
+        // }
+
+        const branch = await getDefaultBranch();
+        const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(GALLERY_PATH)}?ref=${encodeURIComponent(branch)}`;
+
+        try {
+          const items = await fetchJSON(api);
+          const images = (Array.isArray(items) ? items : []).filter(f =>
+            f.type === 'file' && /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name)
+          );
+
+          images.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+          images.forEach(addItem);
+
+          if (window.jQuery && typeof jQuery.fn.prettyPhoto === 'function') {
+            jQuery("a[rel^='prettyPhoto']").prettyPhoto();
+          }
+          if (window.WOW) {
+            new WOW({ offset: 80, mobile: true, live: true }).init();
+          }
+
+          if (!images.length) {
+            const empty = document.createElement('p');
+            empty.className = 'text-muted small';
+            empty.textContent = 'No images found. Upload to images/Honkai_Starrail/characters.';
+            section.querySelector('.container').appendChild(empty);
+          }
+        } catch (e) {
+          const err = document.createElement('p');
+          err.className = 'text-muted small';
+          err.textContent = 'Unable to load images. Please try again later.';
+          section.querySelector('.container').appendChild(err);
+          console.warn('Gallery load failed:', e);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', buildGallery);
+      } else {
+        buildGallery();
+      }
+    })();
+  </script>
 </section>
 
     <script src="js/jquery.js"></script>
