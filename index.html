@@ -121,9 +121,10 @@
 
       if (host.endsWith('github.io')) {
         OWNER = host.split('.')[0];
-        // If this is a project page, the first path segment is the repo name.
+        // Always use the first path segment when present (project pages),
+        // otherwise fall back to <owner>.github.io (user page).
         const firstSeg = location.pathname.split('/').filter(Boolean)[0];
-        REPO = firstSeg && !/\.github\.io$/i.test(firstSeg) ? firstSeg : `${OWNER}.github.io`;
+        REPO = firstSeg ? firstSeg : `${OWNER}.github.io`;
       }
       const USE_GITHUB = host.endsWith('github.io');
 
