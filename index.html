@@ -115,18 +115,10 @@
 
   <script>
     (function () {
-      const host = location.hostname.toLowerCase();
-      let OWNER = 'htly-s-Honkai-Starrail-record';
-      let REPO  = OWNER + '.github.io';
-
-      if (host.endsWith('github.io')) {
-        OWNER = host.split('.')[0];
-        // Always use the first path segment when present (project pages),
-        // otherwise fall back to <owner>.github.io (user page).
-        const firstSeg = location.pathname.split('/').filter(Boolean)[0];
-        REPO = firstSeg ? firstSeg : `${OWNER}.github.io`;
-      }
-      const USE_GITHUB = host.endsWith('github.io');
+      // Hardcode to your repo (avoid mis-detection on project pages)
+      const OWNER = 'Hantangduheyinglengyuezanghuahun';
+      const REPO  = 'htly-s-Honkai-Starrail-record.github.io';
+      const USE_GITHUB = true;
 
       const GALLERY_PATH = 'images/Honkai_Starrail/characters';
 
