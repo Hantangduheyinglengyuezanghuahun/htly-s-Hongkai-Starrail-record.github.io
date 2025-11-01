@@ -73,8 +73,8 @@
       <div class="col-xs-12 col-md-6 profile-col-img wow fadeInLeft" data-wow-duration="800ms" data-wow-delay=".15s">
         <img
           class="img-responsive profile-img"
-          src="images\Honkai_Starrail\Profile"
-          srcset="images\Honkai_Starrail\Profile\profile.PNG"
+          src="images/Honkai_Starrail/Profile/profile.PNG"
+          srcset="images/Honkai_Starrail/Profile/profile.PNG"
           sizes="(max-width: 991px) 100vw, 50vw"
           alt="Trailblazer profile"
           loading="lazy">
@@ -115,8 +115,17 @@
 
   <script>
     (function () {
-      const OWNER = 'htly-s-Honkai-Starrail-record';
-      const REPO  = OWNER + '.github.io';
+      // Auto-detect owner/repo on GitHub Pages; fallback to your configured values locally
+      const host = location.hostname.toLowerCase();
+      let OWNER = 'htly-s-Honkai-Starrail-record';
+      let REPO  = OWNER + '.github.io';
+      if (host.endsWith('github.io')) {
+        const user = host.split('.')[0];
+        OWNER = user;
+        REPO  = `${user}.github.io`;
+      }
+      const USE_GITHUB = host.endsWith('github.io');
+
       const GALLERY_PATH = 'images/Honkai_Starrail/characters';
 
       const section = document.getElementById('characters');
@@ -153,9 +162,50 @@
       }
 
       async function fetchJSON(url) {
-        const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
-        if (!res.ok) throw new Error(res.status);
+        const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json' } });
+        if (!res.ok) {
+          const body = await res.text().catch(() => '');
+          const err = new Error(`HTTP ${res.status} ${url} :: ${body.slice(0,200)}`);
+          err.status = res.status;
+          throw err;
+        }
         return res.json();
+      }
+
+      async function fetchLocalList() {
+        try {
+          const r = await fetch(`${GALLERY_PATH}/manifest.json`, { cache: 'no-cache' });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const names = await r.json();
+          if (!Array.isArray(names)) return [];
+          return names
+            .filter(n => /\.(png|jpe?g|gif|webp|svg)$/i.test(n))
+            .map(name => ({
+              name,
+              download_url: `${GALLERY_PATH}/${encodeURIComponent(name)}`
+            }));
+        } catch (_) { return []; }
+      }
+
+      // Fallback: parse local directory listing HTML (e.g., python http.server)
+      async function fetchDirListing() {
+        try {
+          const r = await fetch(`${GALLERY_PATH}/`, { cache: 'no-cache' });
+          if (!r.ok || !r.headers.get('content-type')?.includes('text/html')) return [];
+          const html = await r.text();
+          const tmp = document.createElement('div');
+          tmp.innerHTML = html;
+          const files = Array.from(tmp.querySelectorAll('a'))
+            .map(a => a.getAttribute('href'))
+            .filter(h => h && !h.endsWith('/'))
+            .map(h => decodeURIComponent(h.split('/').pop()))
+            .filter(name => /\.(png|jpe?g|gif|webp|svg)$/i.test(name))
+            .map(name => ({
+              name,
+              download_url: `${GALLERY_PATH}/${encodeURIComponent(name)}`
+            }));
+          return files;
+        } catch (_) { return []; }
       }
 
       async function getDefaultBranch() {
@@ -163,6 +213,7 @@
           const info = await fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}`);
           return info.default_branch || 'main';
         } catch (e) {
+          console.warn('Repo info failed, falling back to main:', e);
           return 'main';
         }
       }
@@ -170,46 +221,43 @@
       async function buildGallery() {
         if (!grid) return;
 
-        // Local preview fallback
-        // Removed early return so local file preview still fetches from GitHub API
-        // if (location.protocol === 'file:') {
-        //   const tip = document.createElement('p');
-        //   tip.className = 'text-muted small';
-        //   tip.textContent = 'Open this page via GitHub Pages to auto-load images.';
-        //   section.querySelector('.container').appendChild(tip);
-        //   return;
-        // }
+        // 1) Local manifest
+        let files = await fetchLocalList();
+
+        // 1b) Fallback to directory listing (local server with index enabled)
+        if (!files.length) files = await fetchDirListing();
+
+        if (files.length) {
+          files.sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
+          files.forEach(addItem);
+          if (window.jQuery && typeof jQuery.fn.prettyPhoto === 'function') jQuery("a[rel^='prettyPhoto']").prettyPhoto();
+          if (window.WOW) new WOW({ offset:80, mobile:true, live:true }).init();
+          return;
+        }
+
+        // 2) GitHub API only on GitHub Pages
+        if (!USE_GITHUB) {
+          const p = document.createElement('p');
+          p.className = 'text-muted small';
+          p.textContent = 'Add images/Honkai_Starrail/characters/manifest.json or run a local server with directory listing.';
+          section.querySelector('.container').appendChild(p);
+          return;
+        }
 
         const branch = await getDefaultBranch();
-        const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURIComponent(GALLERY_PATH)}?ref=${encodeURIComponent(branch)}`;
-
+        const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURI(GALLERY_PATH)}?ref=${encodeURIComponent(branch)}`;
         try {
           const items = await fetchJSON(api);
-          const images = (Array.isArray(items) ? items : []).filter(f =>
-            f.type === 'file' && /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name)
-          );
-
-          images.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+          const images = (Array.isArray(items)?items:[]).filter(f => f.type==='file' && /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name));
+          images.sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
           images.forEach(addItem);
-
-          if (window.jQuery && typeof jQuery.fn.prettyPhoto === 'function') {
-            jQuery("a[rel^='prettyPhoto']").prettyPhoto();
-          }
-          if (window.WOW) {
-            new WOW({ offset: 80, mobile: true, live: true }).init();
-          }
-
+          if (window.jQuery && typeof jQuery.fn.prettyPhoto === 'function') jQuery("a[rel^='prettyPhoto']").prettyPhoto();
+          if (window.WOW) new WOW({ offset:80, mobile:true, live:true }).init();
           if (!images.length) {
-            const empty = document.createElement('p');
-            empty.className = 'text-muted small';
-            empty.textContent = 'No images found. Upload to images/Honkai_Starrail/characters.';
-            section.querySelector('.container').appendChild(empty);
+            const empty=document.createElement('p'); empty.className='text-muted small'; empty.textContent='No images found in the repo.'; section.querySelector('.container').appendChild(empty);
           }
-        } catch (e) {
-          const err = document.createElement('p');
-          err.className = 'text-muted small';
-          err.textContent = 'Unable to load images. Please try again later.';
-          section.querySelector('.container').appendChild(err);
+        } catch(e) {
+          const err=document.createElement('p'); err.className='text-muted small'; err.textContent='Unable to load images.'; section.querySelector('.container').appendChild(err);
           console.warn('Gallery load failed:', e);
         }
       }
