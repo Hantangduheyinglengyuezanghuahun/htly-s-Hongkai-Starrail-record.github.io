@@ -115,14 +115,15 @@
 
   <script>
     (function () {
-      // Auto-detect owner/repo on GitHub Pages; fallback to your configured values locally
       const host = location.hostname.toLowerCase();
       let OWNER = 'htly-s-Honkai-Starrail-record';
       let REPO  = OWNER + '.github.io';
+
       if (host.endsWith('github.io')) {
-        const user = host.split('.')[0];
-        OWNER = user;
-        REPO  = `${user}.github.io`;
+        OWNER = host.split('.')[0];
+        // If this is a project page, the first path segment is the repo name.
+        const firstSeg = location.pathname.split('/').filter(Boolean)[0];
+        REPO = firstSeg && !/\.github\.io$/i.test(firstSeg) ? firstSeg : `${OWNER}.github.io`;
       }
       const USE_GITHUB = host.endsWith('github.io');
 
@@ -257,7 +258,12 @@
             const empty=document.createElement('p'); empty.className='text-muted small'; empty.textContent='No images found in the repo.'; section.querySelector('.container').appendChild(empty);
           }
         } catch(e) {
-          const err=document.createElement('p'); err.className='text-muted small'; err.textContent='Unable to load images.'; section.querySelector('.container').appendChild(err);
+          const err = document.createElement('p');
+          err.className = 'text-muted small';
+          err.textContent = e?.status === 404
+            ? 'Folder not found on the repo. Check path/casing and that files are pushed.'
+            : `Unable to load images (HTTP ${e?.status ?? 'error'}).`;
+          section.querySelector('.container').appendChild(err);
           console.warn('Gallery load failed:', e);
         }
       }
