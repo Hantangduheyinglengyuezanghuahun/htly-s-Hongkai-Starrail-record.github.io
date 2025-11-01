@@ -201,6 +201,12 @@
         } catch { return []; }
       }
 
+      // ADD THIS: GitHub API fetch for this gallery
+      async function fetchFromGithub(branch) {
+        const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURI(GALLERY_PATH)}?ref=${encodeURIComponent(branch)}`;
+        return fetchJSON(api);
+      }
+
       async function buildGallery() {
         if (!grid) return;
 
