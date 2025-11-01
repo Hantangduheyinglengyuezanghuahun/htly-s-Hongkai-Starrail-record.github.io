@@ -224,6 +224,115 @@
   </script>
 </section>
 
+<!-- Additional gallery (no title, no captions) -->
+<section id="featured-pictures" class="hsr-section">
+  <div class="container">
+    <div class="row character-grid" id="featuredPicturesGrid"></div>
+    <noscript>
+      <p class="text-muted small">Enable JavaScript to auto-load images from images/Honkai_Starrail/featured_pictures.</p>
+    </noscript>
+  </div>
+
+  <script>
+    (function () {
+      const OWNER = 'Hantangduheyinglengyuezanghuahun';
+      const REPO  = 'htly-s-Honkai-Starrail-record.github.io';
+      const USE_GITHUB = true;
+
+      const GALLERY_PATH = 'images/Honkai_Starrail/featured_pictures';
+      const BRANCH = 'main';
+
+      const section = document.getElementById('featured-pictures');
+      const grid = document.getElementById('featuredPicturesGrid');
+
+      function addItem(file) {
+        const col = document.createElement('div');
+        col.className = 'col-xs-6 col-sm-4 col-md-3 wow fadeInUp';
+        col.setAttribute('data-wow-duration', '800ms');
+
+        const a = document.createElement('a');
+        a.href = file.download_url || file.html_url;
+        a.setAttribute('rel', "prettyPhoto[pics]");
+        a.setAttribute('data-rel', "prettyPhoto[pics]");
+
+        const img = document.createElement('img');
+        img.className = 'img-responsive char-card';
+        img.loading = 'lazy';
+        img.src = file.download_url;
+        img.alt = ''; // no caption/name
+
+        a.appendChild(img);
+        col.appendChild(a);
+        grid.appendChild(col);
+      }
+
+      async function fetchJSON(url) {
+        console.log('[gallery2] GET', url);
+        const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json' } });
+        if (!res.ok) {
+          const body = await res.text().catch(() => '');
+          const err = new Error(`HTTP ${res.status} ${url} :: ${body.slice(0,200)}`);
+          err.status = res.status;
+          throw err;
+        }
+        return res.json();
+      }
+
+      async function fetchFromGithub(branch) {
+        const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURI(GALLERY_PATH)}?ref=${encodeURIComponent(branch)}`;
+        return fetchJSON(api);
+      }
+
+      async function buildGallery() {
+        if (!grid) return;
+
+        if (!USE_GITHUB) {
+          const p=document.createElement('p');
+          p.className='text-muted small';
+          p.textContent='Open on GitHub Pages or add a local manifest.';
+          section.querySelector('.container').appendChild(p);
+          return;
+        }
+
+        try {
+          const def = await fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}`).then(x => x.default_branch || 'main').catch(() => 'main');
+          const candidates = Array.from(new Set([BRANCH, def]));
+          let items = [];
+          for (const b of candidates) {
+            try { items = await fetchFromGithub(b); break; }
+            catch (e) { if (e.status !== 404) throw e; }
+          }
+
+          const images = (Array.isArray(items)?items:[])
+            .filter(f => f.type==='file' && /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name))
+            .sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
+
+          images.forEach(addItem);
+
+          if (!images.length) {
+            const empty=document.createElement('p');
+            empty.className='text-muted small';
+            empty.textContent=`No images found at ${OWNER}/${REPO}/${GALLERY_PATH} on branch "main".`;
+            section.querySelector('.container').appendChild(empty);
+          }
+        } catch(e) {
+          const err=document.createElement('p');
+          err.className='text-muted small';
+          err.textContent = e?.status ? `Unable to load images (HTTP ${e.status}).` : `Unable to load images: ${e?.message || 'error'}.`;
+          section.querySelector('.container').appendChild(err);
+          console.warn('Featured pictures load failed:', e);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', buildGallery);
+      } else {
+        buildGallery();
+      }
+    })();
+  </script>
+</section>
+
     <script src="js/jquery.js"></script>
     <script src="js/bootstrap.min.js"></script> 
     <script src="js/mousescroll.js"></script>
