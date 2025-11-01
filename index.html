@@ -185,16 +185,28 @@
         } catch { return []; }
       }
 
-      async function fetchFromGithub(branch) {
-        const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURI(GALLERY_PATH)}?ref=${encodeURIComponent(branch)}`;
-        return fetchJSON(api);
+      // NEW: fallback for local server directory listings (e.g., python http.server)
+      async function fetchDirListing() {
+        try {
+          const r = await fetch(`${GALLERY_PATH}/`, { cache: 'no-cache' });
+          if (!r.ok || !String(r.headers.get('content-type')).includes('text/html')) return [];
+          const html = await r.text();
+          const tmp = document.createElement('div'); tmp.innerHTML = html;
+          return Array.from(tmp.querySelectorAll('a'))
+            .map(a => a.getAttribute('href'))
+            .filter(h => h && !h.endsWith('/'))
+            .map(h => decodeURIComponent(h.split('/').pop()))
+            .filter(name => /\.(png|jpe?g|gif|webp|svg)$/i.test(name))
+            .map(name => ({ name, download_url: `${GALLERY_PATH}/${encodeURIComponent(name)}` }));
+        } catch { return []; }
       }
 
       async function buildGallery() {
         if (!grid) return;
 
-        // 1) Local first
-        const localFiles = await fetchLocalList();
+        // 1) Local first: manifest, then directory listing
+        let localFiles = await fetchLocalList();
+        if (!localFiles.length) localFiles = await fetchDirListing();
         if (localFiles.length) {
           localFiles.sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
           localFiles.forEach(addItem);
