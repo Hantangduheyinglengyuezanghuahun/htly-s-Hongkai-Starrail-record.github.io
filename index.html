@@ -134,8 +134,11 @@
       function addItem(file) {
         const name = file.name || decodeURIComponent((file.download_url || '').split('/').pop() || '');
         const col = document.createElement('div');
-        col.className = 'col-xs-6 col-sm-4 col-md-3 wow fadeInUp';
-        col.setAttribute('data-wow-duration', '800ms');
+        // Staggered zoom-in entrance
+        const idx = grid.children.length;
+        col.className = 'col-xs-6 col-sm-4 col-md-3 wow zoomIn';
+        col.setAttribute('data-wow-duration', '600ms');
+        col.setAttribute('data-wow-delay', `${(idx % 8) * 60}ms`);
 
         const a = document.createElement('a');
         a.href = file.download_url || file.html_url;
@@ -216,6 +219,8 @@
         if (localFiles.length) {
           localFiles.sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
           localFiles.forEach(addItem);
+          // ensure WOW sees newly injected nodes
+          if (window._wow && typeof window._wow.sync === 'function') window._wow.sync();
           return;
         }
 
@@ -241,6 +246,7 @@
           const images = (Array.isArray(items)?items:[]).filter(f => f.type==='file' && /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name));
           images.sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
           images.forEach(addItem);
+          if (window._wow && typeof window._wow.sync === 'function') window._wow.sync();
 
           if (!images.length) {
             const empty=document.createElement('p');
@@ -289,8 +295,10 @@
 
       function addItem(file) {
         const col = document.createElement('div');
-        col.className = 'col-xs-6 col-sm-4 col-md-3 wow fadeInUp';
-        col.setAttribute('data-wow-duration', '800ms');
+        const idx = grid.children.length;
+        col.className = 'col-xs-6 col-sm-4 col-md-3 wow zoomIn';
+        col.setAttribute('data-wow-duration', '600ms');
+        col.setAttribute('data-wow-delay', `${(idx % 8) * 60}ms`);
 
         const a = document.createElement('a');
         a.href = file.download_url || file.html_url;
@@ -350,6 +358,7 @@
             .sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
 
           images.forEach(addItem);
+          if (window._wow && typeof window._wow.sync === 'function') window._wow.sync();
 
           if (!images.length) {
             const empty=document.createElement('p');
@@ -386,9 +395,11 @@
     <script src="js/custom-scripts.js"></script>
 
     <script>
-      // Ensure WOW animations run (including on first load)
+      // Ensure WOW animations run (including on dynamically added items)
       if (window.WOW) {
-        new WOW({ offset: 80, mobile: true, live: true }).init();
+        var wow = new WOW({ offset: 80, mobile: true, live: true });
+        wow.init();
+        window._wow = wow; // expose for .sync()
       }
     </script>
 
