@@ -117,9 +117,10 @@
     (function () {
       const OWNER = 'Hantangduheyinglengyuezanghuahun';
       const REPO  = 'htly-s-Honkai-Starrail-record.github.io';
-      const USE_GITHUB = true;
+      const IS_GITHUB = /\.github\.io$/i.test(location.hostname);
+      const USE_GITHUB = IS_GITHUB;
 
-      // CHANGE THIS if your repo folder casing differs (Characters vs characters, StarRail vs Starrail)
+      // CHANGE THIS if your repo folder casing differs
       const GALLERY_PATH = 'images/Honkai_Starrail/characters';
       const BRANCH = 'main';
 
@@ -158,7 +159,6 @@
       }
 
       async function fetchJSON(url) {
-        console.log('[gallery] GET', url);
         const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json' } });
         if (!res.ok) {
           const body = await res.text().catch(() => '');
@@ -169,6 +169,22 @@
         return res.json();
       }
 
+      // Local manifest: images/Honkai_Starrail/characters/manifest.json
+      async function fetchLocalList() {
+        try {
+          const r = await fetch(`${GALLERY_PATH}/manifest.json`, { cache: 'no-cache' });
+          if (!r.ok) return [];
+          const names = await r.json();
+          if (!Array.isArray(names)) return [];
+          return names
+            .filter(n => /\.(png|jpe?g|gif|webp|svg)$/i.test(n))
+            .map(name => ({
+              name,
+              download_url: `${GALLERY_PATH}/${encodeURIComponent(name)}`
+            }));
+        } catch { return []; }
+      }
+
       async function fetchFromGithub(branch) {
         const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURI(GALLERY_PATH)}?ref=${encodeURIComponent(branch)}`;
         return fetchJSON(api);
@@ -177,16 +193,24 @@
       async function buildGallery() {
         if (!grid) return;
 
+        // 1) Local first
+        const localFiles = await fetchLocalList();
+        if (localFiles.length) {
+          localFiles.sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
+          localFiles.forEach(addItem);
+          return;
+        }
+
+        // 2) GitHub (on github.io)
         if (!USE_GITHUB) {
           const p=document.createElement('p');
           p.className='text-muted small';
-          p.textContent='Open on GitHub Pages or add a local manifest.';
+          p.textContent='Add manifest.json in images/Honkai_Starrail/characters to view locally.';
           section.querySelector('.container').appendChild(p);
           return;
         }
 
         try {
-          // Try main first explicitly, then default branch as a fallback
           const def = await fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}`).then(x => x.default_branch || 'main').catch(() => 'main');
           const candidates = Array.from(new Set([BRANCH, def]));
           let items = [];
@@ -203,7 +227,7 @@
           if (!images.length) {
             const empty=document.createElement('p');
             empty.className='text-muted small';
-            empty.textContent=`No images found at ${OWNER}/${REPO}/${GALLERY_PATH} on branch "${usedBranch}". Check folder casing/path.`;
+            empty.textContent=`No images found at ${OWNER}/${REPO}/${GALLERY_PATH} on branch "${usedBranch}".`;
             section.querySelector('.container').appendChild(empty);
           }
         } catch(e) {
