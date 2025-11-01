@@ -206,56 +206,62 @@
         try {
           const info = await fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}`);
           return info.default_branch || 'main';
-        } catch (e) {
-          console.warn('Repo info failed, falling back to main:', e);
+        } catch {
           return 'main';
         }
+      }
+
+      async function fetchFromGithub(branch) {
+        const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURI(GALLERY_PATH)}?ref=${encodeURIComponent(branch)}`;
+        return fetchJSON(api);
       }
 
       async function buildGallery() {
         if (!grid) return;
 
-        // 1) Local manifest
+        // 1) Local sources (manifest or directory listing)
         let files = await fetchLocalList();
-
-        // 1b) Fallback to directory listing (local server with index enabled)
         if (!files.length) files = await fetchDirListing();
-
         if (files.length) {
           files.sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
           files.forEach(addItem);
-          if (window.jQuery && typeof jQuery.fn.prettyPhoto === 'function') jQuery("a[rel^='prettyPhoto']").prettyPhoto();
+          if (window.jQuery && jQuery.fn.prettyPhoto) jQuery("a[rel^='prettyPhoto']").prettyPhoto();
           if (window.WOW) new WOW({ offset:80, mobile:true, live:true }).init();
           return;
         }
 
-        // 2) GitHub API only on GitHub Pages
+        // 2) GitHub (github.io)
         if (!USE_GITHUB) {
-          const p = document.createElement('p');
-          p.className = 'text-muted small';
-          p.textContent = 'Add images/Honkai_Starrail/characters/manifest.json or run a local server with directory listing.';
+          const p=document.createElement('p');
+          p.className='text-muted small';
+          p.textContent='Add images/Honkai_Starrail/characters/manifest.json or run a local server with directory listing.';
           section.querySelector('.container').appendChild(p);
           return;
         }
 
-        const branch = await getDefaultBranch();
-        const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURI(GALLERY_PATH)}?ref=${encodeURIComponent(branch)}`;
         try {
-          const items = await fetchJSON(api);
+          const def = await getDefaultBranch();
+          const candidates = Array.from(new Set(['gh-pages', def]));
+          let items = [];
+          let usedBranch = '';
+          for (const b of candidates) {
+            try { items = await fetchFromGithub(b); usedBranch = b; break; } catch (e) { if (e.status !== 404) throw e; }
+          }
           const images = (Array.isArray(items)?items:[]).filter(f => f.type==='file' && /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name));
           images.sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
           images.forEach(addItem);
-          if (window.jQuery && typeof jQuery.fn.prettyPhoto === 'function') jQuery("a[rel^='prettyPhoto']").prettyPhoto();
+          if (window.jQuery && jQuery.fn.prettyPhoto) jQuery("a[rel^='prettyPhoto']").prettyPhoto();
           if (window.WOW) new WOW({ offset:80, mobile:true, live:true }).init();
           if (!images.length) {
-            const empty=document.createElement('p'); empty.className='text-muted small'; empty.textContent='No images found in the repo.'; section.querySelector('.container').appendChild(empty);
+            const empty=document.createElement('p');
+            empty.className='text-muted small';
+            empty.textContent=`No images found in the repo branch "${usedBranch}".`;
+            section.querySelector('.container').appendChild(empty);
           }
         } catch(e) {
-          const err = document.createElement('p');
-          err.className = 'text-muted small';
-          err.textContent = e?.status === 404
-            ? 'Folder not found on the repo. Check path/casing and that files are pushed.'
-            : `Unable to load images (HTTP ${e?.status ?? 'error'}).`;
+          const err=document.createElement('p');
+          err.className='text-muted small';
+          err.textContent = e?.status ? `Unable to load images (HTTP ${e.status}).` : 'Unable to load images.';
           section.querySelector('.container').appendChild(err);
           console.warn('Gallery load failed:', e);
         }
