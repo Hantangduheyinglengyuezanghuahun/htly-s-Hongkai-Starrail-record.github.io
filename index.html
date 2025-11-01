@@ -115,21 +115,23 @@
 
   <script>
     (function () {
-      // Hardcode to your repo (avoid mis-detection on project pages)
       const OWNER = 'Hantangduheyinglengyuezanghuahun';
       const REPO  = 'htly-s-Honkai-Starrail-record.github.io';
       const USE_GITHUB = true;
 
+      // CHANGE THIS if your repo folder casing differs (Characters vs characters, StarRail vs Starrail)
       const GALLERY_PATH = 'images/Honkai_Starrail/characters';
+      const BRANCH = 'main';
 
       const section = document.getElementById('characters');
       const grid = document.getElementById('characterGrid');
 
       function toTitle(name) {
-        return decodeURIComponent(name.replace(/\.[^.]+$/, '').replace(/[_\-]+/g, ' '));
+        return decodeURIComponent(String(name || '').replace(/\.[^.]+$/, '').replace(/[_\-]+/g, ' '));
       }
 
       function addItem(file) {
+        const name = file.name || decodeURIComponent((file.download_url || '').split('/').pop() || '');
         const col = document.createElement('div');
         col.className = 'col-xs-6 col-sm-4 col-md-3 wow fadeInUp';
         col.setAttribute('data-wow-duration', '800ms');
@@ -143,11 +145,11 @@
         img.className = 'img-responsive char-card';
         img.loading = 'lazy';
         img.src = file.download_url;
-        img.alt = toTitle(file.name);
+        img.alt = toTitle(name);
 
         const p = document.createElement('p');
         p.className = 'text-center';
-        p.textContent = toTitle(file.name);
+        p.textContent = toTitle(name);
 
         a.appendChild(img);
         col.appendChild(a);
@@ -156,6 +158,7 @@
       }
 
       async function fetchJSON(url) {
+        console.log('[gallery] GET', url);
         const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json' } });
         if (!res.ok) {
           const body = await res.text().catch(() => '');
@@ -166,51 +169,6 @@
         return res.json();
       }
 
-      async function fetchLocalList() {
-        try {
-          const r = await fetch(`${GALLERY_PATH}/manifest.json`, { cache: 'no-cache' });
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          const names = await r.json();
-          if (!Array.isArray(names)) return [];
-          return names
-            .filter(n => /\.(png|jpe?g|gif|webp|svg)$/i.test(n))
-            .map(name => ({
-              name,
-              download_url: `${GALLERY_PATH}/${encodeURIComponent(name)}`
-            }));
-        } catch (_) { return []; }
-      }
-
-      // Fallback: parse local directory listing HTML (e.g., python http.server)
-      async function fetchDirListing() {
-        try {
-          const r = await fetch(`${GALLERY_PATH}/`, { cache: 'no-cache' });
-          if (!r.ok || !r.headers.get('content-type')?.includes('text/html')) return [];
-          const html = await r.text();
-          const tmp = document.createElement('div');
-          tmp.innerHTML = html;
-          const files = Array.from(tmp.querySelectorAll('a'))
-            .map(a => a.getAttribute('href'))
-            .filter(h => h && !h.endsWith('/'))
-            .map(h => decodeURIComponent(h.split('/').pop()))
-            .filter(name => /\.(png|jpe?g|gif|webp|svg)$/i.test(name))
-            .map(name => ({
-              name,
-              download_url: `${GALLERY_PATH}/${encodeURIComponent(name)}`
-            }));
-          return files;
-        } catch (_) { return []; }
-      }
-
-      async function getDefaultBranch() {
-        try {
-          const info = await fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}`);
-          return info.default_branch || 'main';
-        } catch {
-          return 'main';
-        }
-      }
-
       async function fetchFromGithub(branch) {
         const api = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeURI(GALLERY_PATH)}?ref=${encodeURIComponent(branch)}`;
         return fetchJSON(api);
@@ -219,49 +177,39 @@
       async function buildGallery() {
         if (!grid) return;
 
-        // 1) Local sources (manifest or directory listing)
-        let files = await fetchLocalList();
-        if (!files.length) files = await fetchDirListing();
-        if (files.length) {
-          files.sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
-          files.forEach(addItem);
-          if (window.jQuery && jQuery.fn.prettyPhoto) jQuery("a[rel^='prettyPhoto']").prettyPhoto();
-          if (window.WOW) new WOW({ offset:80, mobile:true, live:true }).init();
-          return;
-        }
-
-        // 2) GitHub (github.io)
         if (!USE_GITHUB) {
           const p=document.createElement('p');
           p.className='text-muted small';
-          p.textContent='Add images/Honkai_Starrail/characters/manifest.json or run a local server with directory listing.';
+          p.textContent='Open on GitHub Pages or add a local manifest.';
           section.querySelector('.container').appendChild(p);
           return;
         }
 
         try {
-          const def = await getDefaultBranch();
-          const candidates = Array.from(new Set(['gh-pages', def]));
+          // Try main first explicitly, then default branch as a fallback
+          const def = await fetchJSON(`https://api.github.com/repos/${OWNER}/${REPO}`).then(x => x.default_branch || 'main').catch(() => 'main');
+          const candidates = Array.from(new Set([BRANCH, def]));
           let items = [];
           let usedBranch = '';
           for (const b of candidates) {
-            try { items = await fetchFromGithub(b); usedBranch = b; break; } catch (e) { if (e.status !== 404) throw e; }
+            try { items = await fetchFromGithub(b); usedBranch = b; break; }
+            catch (e) { if (e.status !== 404) throw e; }
           }
+
           const images = (Array.isArray(items)?items:[]).filter(f => f.type==='file' && /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name));
           images.sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
           images.forEach(addItem);
-          if (window.jQuery && jQuery.fn.prettyPhoto) jQuery("a[rel^='prettyPhoto']").prettyPhoto();
-          if (window.WOW) new WOW({ offset:80, mobile:true, live:true }).init();
+
           if (!images.length) {
             const empty=document.createElement('p');
             empty.className='text-muted small';
-            empty.textContent=`No images found in the repo branch "${usedBranch}".`;
+            empty.textContent=`No images found at ${OWNER}/${REPO}/${GALLERY_PATH} on branch "${usedBranch}". Check folder casing/path.`;
             section.querySelector('.container').appendChild(empty);
           }
         } catch(e) {
           const err=document.createElement('p');
           err.className='text-muted small';
-          err.textContent = e?.status ? `Unable to load images (HTTP ${e.status}).` : 'Unable to load images.';
+          err.textContent = e?.status ? `Unable to load images (HTTP ${e.status}).` : `Unable to load images: ${e?.message || 'error'}.`;
           section.querySelector('.container').appendChild(err);
           console.warn('Gallery load failed:', e);
         }
