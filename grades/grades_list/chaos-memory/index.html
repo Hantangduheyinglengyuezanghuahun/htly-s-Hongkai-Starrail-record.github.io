@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>混沌回忆 | 成绩</title>
+  <link rel="stylesheet" href="../../css/bootstrap.css">
+  <link rel="stylesheet" href="../../css/3-col-portfolio.css">
+  <style>
+    body { background:#0f1329; color:#e9edff; }
+    a, a:hover, a:focus { text-decoration:none; }
+
+    /* Accordion container */
+    .cm-accordion { margin: 22px 0 40px; }
+
+    /* Collapse default hidden (fallback if Bootstrap CSS isn’t loaded yet) */
+    .panel-collapse.collapse { display: none; }
+    .panel-collapse.collapse.in,
+    .panel-collapse.collapse.show { display: block; }
+
+    /* Header card (purple) */
+    .cm-item { margin-bottom: 14px; border:0; }
+    .cm-header {
+      position: relative;
+      background: linear-gradient(180deg,#6e54c7 0%, #5a40b0 60%, #4b2f92 100%);
+      color:#fff;
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(0,0,0,.30);
+    }
+    .cm-toggle {
+      display:flex; width:100%;
+      align-items:center; justify-content:space-between;
+      padding:14px 16px 14px 16px;
+      background:transparent; border:0; color:inherit; text-align:left;
+      border-radius:14px; cursor:pointer;
+    }
+    .cm-left { min-width:0; }
+    .cm-name { font-weight:700; font-size:16px; line-height:1.2; margin:0; }
+    .cm-duration, .cm-turns { opacity:.92; font-size:13px; }
+    .cm-duration { margin-top:4px; }
+    .cm-right { display:flex; align-items:center; gap:14px; margin-left:12px; }
+    .cm-stars { display:inline-flex; gap:6px; }
+    .cm-stars i {
+      width:22px; height:22px; display:inline-block;
+      background-repeat:no-repeat; background-size:contain;
+      /* empty star */
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23a07d2f' d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z' opacity='.35'/></svg>");
+      filter: drop-shadow(0 1px 0 rgba(0,0,0,.15));
+    }
+    .cm-stars i.on {
+      /* filled star */
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23ffc94d' d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/></svg>");
+    }
+    .cm-caret {
+      width:20px; height:20px; flex:0 0 auto;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23ffffff' d='M7 10l5 5 5-5z' opacity='.9'/></svg>");
+      background-repeat:no-repeat; background-size:contain;
+      transition: transform .18s ease;
+    }
+    .cm-toggle[aria-expanded="true"] .cm-caret { transform: rotate(180deg); }
+
+    /* Collapsed body */
+    .cm-body {
+      background: #171a36;
+      border: 1px solid rgba(255,255,255,.08);
+      border-top: 0;
+      border-radius: 0 0 14px 14px;
+      box-shadow: 0 12px 26px rgba(0,0,0,.28);
+      padding: 16px;
+    }
+    .cm-media { display:grid; grid-template-columns: 1fr; gap:14px; }
+    @media (min-width: 992px) { .cm-media { grid-template-columns: 1fr 1fr; } }
+
+    .cm-screenshot {
+      width:100%; height:auto; border-radius:10px;
+      background:#0e1026;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+    }
+    .cm-video {
+      width:100%; aspect-ratio:16/9; background:#0e1026;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:10px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+    }
+    /* Hide only truly empty/missing videos, not valid ones */
+    .cm-video:not([src]),
+    .cm-video[src=""],
+    .cm-video[hidden] { display: none !important; }
+
+    /* Small helpers */
+    .muted { color:#cfd7ff; opacity:.9; }
+
+    /* Long screenshot: scroll inside panel, default view at top */
+    .cm-screenshot-wrap {
+      max-height: 68vh; overflow: auto;
+      border-radius: 10px; background:#0e1026;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+    }
+    .cm-screenshot-wrap::-webkit-scrollbar { width: 8px; }
+    .cm-screenshot-wrap::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,.18); border-radius: 8px;
+    }
+    .cm-scroll-hint {
+      position: sticky; bottom: 0; text-align:center; font-size:12px;
+      color:#cfd7ff; padding: 6px 0;
+      background: linear-gradient(180deg, rgba(23,26,54,0) 0%, rgba(23,26,54,.92) 80%);
+    }
+
+    /* Ensure collapsed content is hidden unless opened */
+    .panel-collapse.collapse { display: none; }
+    .panel-collapse.collapse.in,
+    .panel-collapse.collapse.show { display: block; }
+
+    /* Remove white background from Bootstrap panel wrapper and hide corner bleed */
+    .cm-accordion .panel { background: transparent; border: 0; box-shadow: none; }
+    .cm-header { overflow: hidden; } /* clips any inner white corners */
+
+    /* Long screenshot: scroll, default at top */
+    .cm-screenshot-wrap {
+      max-height: 68vh; overflow: auto;
+      border-radius: 10px; background:#0e1026;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+    }
+    .cm-screenshot-wrap img { display:block; width:100%; height:auto; }
+    .cm-screenshot-wrap::-webkit-scrollbar { width: 8px; }
+    .cm-screenshot-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 8px; }
+    .cm-scroll-hint {
+      position: sticky; bottom: 0; text-align:center; font-size:12px;
+      color:#cfd7ff; padding: 6px 0;
+      background: linear-gradient(180deg, rgba(23,26,54,0) 0%, rgba(23,26,54,.92) 80%);
+    }
+
+    /* Kill white panel background completely */
+    .cm-accordion .panel {
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    .cm-header { overflow: hidden; border-radius: 14px; }
+    .cm-toggle {
+      background: transparent !important;
+      border: 0 !important;
+      outline: none !important;
+      box-shadow: none !important;
+      -webkit-appearance: none; appearance: none;
+    }
+    /* Ensure collapse shows when toggled (for fallback JS below) */
+    .panel-collapse.collapse { display: none; }
+    .panel-collapse.collapse.in,
+    .panel-collapse.collapse.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="page-header" style="border:0;color:#fff;">混沌回忆</h1>
+
+    <div id="cm-accordion" class="cm-accordion panel-group" role="tablist" aria-multiselectable="true">
+
+      <!-- TEMPLATE: duplicate this .cm-item for each周期; fill placeholders -->
+      <div class="cm-item panel">
+        <div class="cm-header" role="tab" id="cm1-heading">
+          <button class="cm-toggle" data-toggle="collapse" data-target="#cm1-body" aria-expanded="false" aria-controls="cm1-body">
+            <div class="cm-left">
+              <p class="cm-name">范畴错误</p>
+              <p class="cm-duration muted">统计周期：YYYY.MM.DD – YYYY.MM.DD</p>
+              <p class="cm-turns muted">使用轮次：<strong>0</strong></p>
+            </div>
+            <div class="cm-right">
+              <div class="cm-stars" data-stars="3" aria-label="星数：3/3"><i></i><i></i><i></i></div>
+              <span class="cm-caret" aria-hidden="true"></span>
+            </div>
+          </button>
+        </div>
+
+        <div id="cm1-body" class="panel-collapse collapse" role="tabpanel" aria-labelledby="cm1-heading" data-parent="#cm-accordion">
+          <div class="cm-body">
+            <div class="cm-media">
+              <!-- Screenshot: replace with your record image path -->
+              <div class="cm-screenshot-wrap">
+                <img class="cm-screenshot" src="范畴错误/范畴错误通关记录.png" alt="本期混沌回忆用时记录">
+                <div class="cm-scroll-hint">向下滚动查看完整图片</div>
+              </div>
+
+              <div>
+                <!-- Optional videos: remove if unused -->
+                <video class="cm-video" controls preload="metadata" playsinline type="video/mp4"
+                       src="范畴错误/范畴错误下半.mp4"></video>
+                <br />
+                <!-- optional second video; leave src empty and it will stay hidden -->
+                <video class="cm-video" controls preload="metadata" playsinline type="video/mp4"></video>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /TEMPLATE -->
+
+    </div>
+
+    <div class="container">
+        <h1 class="page-header" style="border:0;color:#fff;">混沌回忆</h1>
+    
+        <div id="cm-accordion-2" class="cm-accordion panel-group" role="tablist" aria-multiselectable="true">
+    
+          <!-- TEMPLATE: duplicate this .cm-item for each周期; fill placeholders -->
+          <div class="cm-item panel">
+            <div class="cm-header" role="tab" id="cm2-heading">
+              <button class="cm-toggle" data-toggle="collapse" data-target="#cm2-body" aria-expanded="false" aria-controls="cm2-body">
+                <div class="cm-left">
+                  <p class="cm-name">【混沌回忆名称占位】</p>
+                  <p class="cm-duration muted">统计周期：YYYY.MM.DD – YYYY.MM.DD</p>
+                  <p class="cm-turns muted">使用轮次：<strong>0</strong></p>
+                </div>
+                <div class="cm-right">
+                  <div class="cm-stars" data-stars="3" aria-label="星数：3/3">
+                    <i></i><i></i><i></i>
+                  </div>
+                  <span class="cm-caret" aria-hidden="true"></span>
+                </div>
+              </button>
+            </div>
+    
+            <div id="cm2-body" class="panel-collapse collapse" role="tabpanel" aria-labelledby="cm2-heading" data-parent="#cm-accordion-2">
+              <div class="cm-body">
+                <div class="cm-media">
+                  <!-- Screenshot: replace with your record image path -->
+                  <div class="cm-screenshot-wrap">
+                    <img class="cm-screenshot" src="images/your-chaos-record.png" alt="本期混沌回忆用时记录">
+                    <div class="cm-scroll-hint">向下滚动查看完整图片</div>
+                  </div>
+    
+                  <div>
+                    <!-- Optional videos: remove if unused -->
+                    <video class="cm-video" controls preload="metadata" src="videos/video1.mp4"></video>
+                    <br />
+                    <video class="cm-video" controls preload="metadata" src="videos/video2.mp4"></video>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- /TEMPLATE -->
+    
+        </div>
+
+    <p><a href="../../index.html">← 返回成绩汇总</a></p>
+  </div>
+
+  <script src="../../js/jquery-1.10.2.js"></script>
+  <script src="../../js/bootstrap.js"></script>
+  <script>
+    // Light up stars (0..3)
+    (function () {
+      var blocks = document.querySelectorAll('.cm-stars');
+      for (var i = 0; i < blocks.length; i++) {
+        var n = parseInt(blocks[i].getAttribute('data-stars') || '0', 10);
+        var stars = blocks[i].querySelectorAll('i');
+        for (var j = 0; j < stars.length; j++) {
+          if (j < n) stars[j].classList.add('on'); else stars[j].classList.remove('on');
+        }
+      }
+    })();
+
+    // Robust collapse: works with Bootstrap; falls back to manual toggle if needed.
+    (function () {
+      // Bootstrap shown event -> reset scroll to top
+      function bindShownReset(root) {
+        if (!root) return;
+        root.addEventListener('shown.bs.collapse', function (e) {
+          var wrap = e.target.querySelector('.cm-screenshot-wrap');
+          if (wrap) wrap.scrollTop = 0;
+        });
+      }
+      bindShownReset(document);
+
+      // Hide videos with empty/missing src, or if loading errors (codec/path)
+      (function () {
+        var vids = document.querySelectorAll('.cm-video');
+        for (var i = 0; i < vids.length; i++) {
+          var v = vids[i];
+          if (!v.getAttribute('src')) v.hidden = true;
+          v.addEventListener('error', function () { this.hidden = true; });
+        }
+      })();
+
+      // Fallback manual toggler (in case Bootstrap JS didn’t bind)
+      document.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('.cm-toggle');
+        if (!btn) return;
+        var sel = btn.getAttribute('data-target');
+        var panel = document.querySelector(sel);
+        if (!panel) return;
+        var open = panel.classList.contains('in') || panel.classList.contains('show');
+        if (open) {
+          panel.classList.remove('in','show'); panel.style.display='none'; btn.setAttribute('aria-expanded','false');
+        } else {
+          panel.classList.add('in','show'); panel.style.display='block'; btn.setAttribute('aria-expanded','true');
+          var wrap = panel.querySelector('.cm-screenshot-wrap'); if (wrap) wrap.scrollTop = 0;
+        }
+      }, false);
+    })();
+  </script>
+</body>
+</html>

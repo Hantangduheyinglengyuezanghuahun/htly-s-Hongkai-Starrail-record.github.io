@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>星铁成绩汇总 | Treasures Lightward</title>
+  <link rel="stylesheet" href="css/bootstrap.css">
+  <link rel="stylesheet" href="css/3-col-portfolio.css">
+  <style>
+    body { background: radial-gradient(1200px 600px at 10% -10%, #1b1f3b 0%, #0f1329 40%, #0b0e1d 100%) fixed; color:#e8ecff; }
+    a, a:hover, a:focus { text-decoration: none; }
+    .page-header { border:0; padding:32px 0 12px; margin:0 0 24px; }
+    .brand { font-weight:700; letter-spacing:.5px; }
+    .sub { color:#b8c0ff; }
+    .grid { margin-top: 8px; }
+    .mode-card {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px;
+      padding: 22px 18px;
+      height: 160px;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,.25);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      text-align: center;
+    }
+    .mode-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 28px rgba(0,0,0,.35);
+      border-color: rgba(144,179,255,.5);
+    }
+    .mode-icon {
+      font-size: 28px; line-height:1; margin-bottom: 10px;
+      color: #90b3ff;
+    }
+    .mode-title { font-size: 18px; font-weight: 700; color:#fff; }
+    .mode-sub { font-size: 13px; color:#c9d2ff; margin-top: 4px; }
+    .footer { color:#9aa4e6; padding: 24px 0 40px; }
+    .btn-back { color:#b8c0ff; border:1px solid rgba(255,255,255,.2); padding:6px 12px; border-radius:10px; }
+    .btn-back:hover { color:#fff; border-color:#90b3ff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-header">
+      <div class="row">
+        <div class="col-xs-12 col-sm-8">
+          <h1 class="brand">Treasures Lightward 成绩汇总</h1>
+          <p class="sub">选择下面的分区查看你在不同玩法中的成绩。</p>
+        </div>
+        <div class="col-xs-12 col-sm-4 text-right" style="margin-top:10px">
+          <a class="btn-back" href="../index.html">← 返回主页</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row grid">
+      <div class="col-xs-12 col-sm-6 col-md-3">
+        <a href="grades_list/chaos-memory/index.html">
+          <div class="mode-card">
+            <div class="mode-icon glyphicon glyphicon-flash" aria-hidden="true"></div>
+            <div class="mode-title">混沌回忆</div>
+            <div class="mode-sub">Memory of Chaos</div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xs-12 col-sm-6 col-md-3">
+        <a href="grades_list/pure-fiction/index.html">
+          <div class="mode-card">
+            <div class="mode-icon glyphicon glyphicon-book" aria-hidden="true"></div>
+            <div class="mode-title">虚构叙事</div>
+            <div class="mode-sub">Pure Fiction</div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xs-12 col-sm-6 col-md-3">
+        <a href="grades_list/apocalyptic-shadow/index.html">
+          <div class="mode-card">
+            <div class="mode-icon glyphicon glyphicon-fire" aria-hidden="true"></div>
+            <div class="mode-title">末日幻影</div>
+            <div class="mode-sub">Apocalyptic Shadow</div>
+          </div>
+        </a>
+      </div>
+      <div class="col-xs-12 col-sm-6 col-md-3">
+        <a href="grades_list/divergent-arbitration/index.html">
+          <div class="mode-card">
+            <div class="mode-icon glyphicon glyphicon-random" aria-hidden="true"></div>
+            <div class="mode-title">异相仲裁</div>
+            <div class="mode-sub">Divergent Arbitration</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer text-center">
+      <small>提示：将你的成绩页放到各自文件夹（如 grades/chaos-memory/index.html）中。</small>
+    </div>
+  </div>
+
+  <script src="js/jquery-1.10.2.js"></script>
+  <script src="js/bootstrap.js"></script>
+</body>
+</html>
